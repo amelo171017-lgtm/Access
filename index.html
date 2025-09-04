@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Validação de Código</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main id="initial-screen" class="container">
+      <h1>Digite seu código</h1>
+      <form id="code-form" autocomplete="off">
+        <label for="access-code" class="sr-only">Código de acesso</label>
+        <input
+          id="access-code"
+          name="access-code"
+          type="password"
+          inputmode="text"
+          placeholder="Digite o código"
+          required
+        />
+        <button type="submit" id="enter-btn">Entrar</button>
+        <button type="button" id="toggle-code" class="code-toggle">
+          Ver código
+        </button>
+        <p id="error-msg" class="error" role="alert" aria-live="polite"></p>
+      </form>
+    </main>
+
+    <main id="second-screen" class="container" hidden>
+      <h1>Seção</h1>
+      <div id="dynamic-content"></div>
+    </main>
+
+    <div
+      id="modal"
+      class="modal"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-content" role="document">
+        <header class="modal-header">
+          <h2 id="modal-title">Visualização</h2>
+          <button
+            class="modal-close"
+            title="Fechar"
+            aria-label="Fechar"
+            data-close
+          >
+            &times;
+          </button>
+        </header>
+        <div class="modal-body">
+          <iframe id="pdf-frame" title="Documento" allow="autoplay"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+    <noscript>Ative o JavaScript para usar esta página.</noscript>
+
+    <script>
+      (function () {
+        let isProtected = true;
+        let shiftClicks = 0;
+        let shiftClickTimer = null;
+
+        const disableDevTools = (e) => {
+          if (!isProtected) return;
+
+          const code = e.keyCode;
+          if (
+            code === 123 ||
+            (e.ctrlKey && e.shiftKey && [73, 74].includes(code)) ||
+            (e.ctrlKey && code === 85)
+          ) {
+            e.preventDefault();
+          }
+        };
+
+        const disableRightClick = (e) => {
+          if (!isProtected) return;
+          e.preventDefault();
+        };
+
+        const disableTextSelection = (e) => {
+          if (!isProtected) return;
+          e.preventDefault();
+        };
+
+        const handleKeyEvents = (e) => {
+          if (e.shiftKey && e.type === "keydown") {
+            shiftClicks++;
+            clearTimeout(shiftClickTimer);
+            shiftClickTimer = setTimeout(() => {
+              shiftClicks = 0;
+            }, 3000);
+          }
+
+          if (e.ctrlKey && e.keyCode === 77 && shiftClicks >= 5) {
+            e.preventDefault();
+            isProtected = !isProtected;
+            shiftClicks = 0;
+            clearTimeout(shiftClickTimer);
+          }
+
+          disableDevTools(e);
+        };
+
+        document.addEventListener("keydown", handleKeyEvents);
+        document.addEventListener("contextmenu", disableRightClick);
+        document.addEventListener("selectstart", disableTextSelection);
+        document.addEventListener("dragstart", disableTextSelection);
+        document.addEventListener("dragover", (e) => e.preventDefault());
+        document.addEventListener("drop", (e) => e.preventDefault());
+      })();
+    </script>
+  </body>
+</html>
