@@ -304,13 +304,14 @@ h1 {
   align-items: flex-start;
   padding: 5px;
   min-height: 0;
+  max-height: calc(100% - 80px);
 }
 
 #pdf-canvas {
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: 80%;
+  max-height: 100%;
   border: 0;
   background: #0f172a;
   display: block;
@@ -329,6 +330,7 @@ h1 {
   flex-wrap: wrap;
   flex-shrink: 0;
   backdrop-filter: blur(10px);
+  min-height: 70px;
 }
 
 .pdf-control-btn {
@@ -508,6 +510,7 @@ h1 {
 
   .pdf-container {
     padding: 1px;
+    max-height: calc(100% - 120px);
   }
 
   #pdf-controls {
@@ -543,6 +546,7 @@ h1 {
 
   .pdf-container {
     padding: 3px;
+    max-height: calc(100% - 100px);
   }
 }
 

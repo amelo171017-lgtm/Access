@@ -173,7 +173,7 @@
         // Calcular o viewport considerando o container disponível
         const pdfContainer = pdfCanvas.parentElement;
         const availableWidth = pdfContainer.clientWidth - 10; // margem reduzida
-        const availableHeight = pdfContainer.clientHeight - 10; // margem reduzida
+        const availableHeight = pdfContainer.clientHeight - 20; // margem extra para controles
 
         // Obter as dimensões originais da página
         const originalViewport = page.getViewport({ scale: 1 });
