@@ -290,22 +290,32 @@ h1 {
 .modal-body {
   height: 100%;
   background: #0f172a;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.pdf-container {
+  flex: 1;
   overflow: auto;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 10px;
-  position: relative;
+  padding: 5px;
+  min-height: 0;
 }
 
 #pdf-canvas {
+  width: auto;
+  height: auto;
   max-width: 100%;
   max-height: 100%;
   border: 0;
   background: #0f172a;
   display: block;
   margin: 0 auto;
-  object-fit: contain;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 #pdf-controls {
@@ -314,9 +324,11 @@ h1 {
   justify-content: space-between;
   gap: 15px;
   padding: 15px 20px;
-  background: #0f172a;
+  background: rgba(15, 23, 42, 0.95);
   border-top: 1px solid #334155;
   flex-wrap: wrap;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
 }
 
 .pdf-control-btn {
@@ -492,7 +504,11 @@ h1 {
   }
 
   .modal-body {
-    padding: 5px;
+    padding: 0;
+  }
+
+  .pdf-container {
+    padding: 1px;
   }
 
   #pdf-controls {
@@ -524,6 +540,10 @@ h1 {
 
   .control-group .pdf-control-btn {
     min-width: 45px;
+  }
+
+  .pdf-container {
+    padding: 3px;
   }
 }
 

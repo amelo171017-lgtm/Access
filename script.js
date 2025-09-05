@@ -169,17 +169,38 @@
     try {
       if (!pdfDoc || !pdfCanvas) return;
 
-
       pdfDoc.getPage(pageNum).then(function(page) {
-        const viewport = page.getViewport({ scale: scale });
+        // Calcular o viewport considerando o container disponível
+        const pdfContainer = pdfCanvas.parentElement;
+        const availableWidth = pdfContainer.clientWidth - 10; // margem reduzida
+        const availableHeight = pdfContainer.clientHeight - 10; // margem reduzida
+
+        // Obter as dimensões originais da página
+        const originalViewport = page.getViewport({ scale: 1 });
+
+        // Calcular a escala ideal para caber no container
+        let finalScale = scale;
+
+        // Primeiro, tentar usar a escala definida pelo usuário
+        const userViewport = page.getViewport({ scale: scale });
+        if (userViewport.width > availableWidth || userViewport.height > availableHeight) {
+          // Se não couber, ajustar automaticamente para caber
+          const scaleX = availableWidth / originalViewport.width;
+          const scaleY = availableHeight / originalViewport.height;
+          finalScale = Math.min(scaleX, scaleY);
+          // Garantir que não fique menor que 0.5
+          finalScale = Math.max(finalScale, 0.5);
+        }
+
+        const viewport = page.getViewport({ scale: finalScale });
         const canvas = pdfCanvas;
         const context = canvas.getContext('2d');
 
+        // Clear canvas first
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-
 
         const renderContext = {
           canvasContext: context,
@@ -555,6 +576,10 @@
       window.addEventListener('resize', () => {
         try {
           adjustGrid();
+          // Re-renderizar página atual se o modal estiver aberto
+          if (pdfDoc && modal?.classList?.contains("open")) {
+            renderPage(currentPage);
+          }
         } catch (error) {
         }
       });
