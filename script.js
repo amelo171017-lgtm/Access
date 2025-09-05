@@ -113,7 +113,9 @@
     try {
       const urlObj = new URL(url);
       return urlObj.protocol === 'https:' &&
-             (urlObj.hostname === 'drive.google.com' || urlObj.hostname.endsWith('.googleapis.com'));
+             (urlObj.hostname === 'drive.google.com' ||
+              urlObj.hostname.endsWith('.googleapis.com') ||
+              urlObj.hostname === 'ohkkrqmxtgxbmetpfwda.supabase.co');
     } catch {
       return false;
     }
@@ -139,7 +141,7 @@
     try {
       if (!link || typeof link !== 'string') return '';
       if (!isValidUrl(link)) return '';
-      
+
       const url = new URL(link);
       if (url.hostname === 'drive.google.com' && url.pathname.startsWith('/file/d/')) {
         const pathParts = url.pathname.split('/');
@@ -149,10 +151,13 @@
             return `https://drive.google.com/file/d/${fileId}/preview`;
           }
         }
+      } else if (url.hostname === 'ohkkrqmxtgxbmetpfwda.supabase.co') {
+        
+        return link;
       }
       return '';
     } catch (error) {
-      console.error('Drive link processing failed:', error);
+      console.error('Link processing failed:', error);
       return '';
     }
   }
@@ -281,7 +286,7 @@
     rateLimiter.recordAttempt();
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     try {
       const headers = {
@@ -313,7 +318,7 @@
 
       const data = await response.json();
 
-      // Validação de resposta
+      
       if (!Array.isArray(data) || data.length === 0) {
         showError("Código não encontrado.");
         return;
@@ -384,9 +389,8 @@
       for (const [key, subject] of Object.entries(data)) {
         if (!subject || typeof subject !== 'object') return false;
         if (!subject.name || typeof subject.name !== 'string') return false;
-        if (subject.name.length > 50) return false; // Limite de tamanho
+        if (subject.name.length > 50) return false;
         
-        // Validar URLs se existirem
         if (subject.library && subject.library !== 'redacao') {
           if (!isValidUrl(subject.library)) return false;
         }
