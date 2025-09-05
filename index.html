@@ -6,6 +6,7 @@
     <meta http-equiv="Permissions-Policy" content="unload=*" />
     <title>Validação de Código</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   </head>
   <body>
     <main id="initial-screen" class="container">
@@ -55,7 +56,14 @@
           </button>
         </header>
         <div class="modal-body">
-          <iframe id="pdf-frame" title="Documento" allow="autoplay; fullscreen; unload" referrerpolicy="no-referrer"></iframe>
+          <canvas id="pdf-canvas"></canvas>
+          <div id="pdf-controls" style="display: none; padding: 10px; background: #0f172a; border-top: 1px solid #334155;">
+            <button id="prev-page" class="pdf-control-btn">Página Anterior</button>
+            <span id="page-info" style="color: #f8fafc; margin: 0 10px;">Página 1 de 1</span>
+            <button id="next-page" class="pdf-control-btn">Próxima Página</button>
+            <button id="zoom-in" class="pdf-control-btn" style="margin-left: 20px;">+</button>
+            <button id="zoom-out" class="pdf-control-btn">-</button>
+          </div>
         </div>
       </div>
     </div>

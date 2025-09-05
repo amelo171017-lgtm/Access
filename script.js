@@ -65,7 +65,10 @@
     return element;
   };
 
-  let form, input, errorMsg, initialScreen, secondScreen, dynamicContent, toggleCodeBtn, modal, pdfFrame, modalTitle;
+  let form, input, errorMsg, initialScreen, secondScreen, dynamicContent, toggleCodeBtn, modal, pdfCanvas, pdfControls, prevPageBtn, nextPageBtn, pageInfo, zoomInBtn, zoomOutBtn, modalTitle;
+  let pdfDoc = null;
+  let currentPage = 1;
+  let scale = 1.5;
 
   try {
     form = getElement("code-form");
@@ -76,10 +79,16 @@
     dynamicContent = getElement("dynamic-content");
     toggleCodeBtn = getElement("toggle-code");
     modal = getElement("modal");
-    pdfFrame = getElement("pdf-frame");
+    pdfCanvas = getElement("pdf-canvas");
+    pdfControls = getElement("pdf-controls");
+    prevPageBtn = getElement("prev-page");
+    nextPageBtn = getElement("next-page");
+    pageInfo = getElement("page-info");
+    zoomInBtn = getElement("zoom-in");
+    zoomOutBtn = getElement("zoom-out");
     modalTitle = getElement("modal-title");
   } catch (error) {
-    console.error('DOM initialization failed:', error);
+    // console.error('DOM initialization failed:', error);
     return;
   }
 
@@ -89,9 +98,9 @@
       message = message.substring(0, 200);
       errorMsg.textContent = message;
       
-      console.warn('User error:', message);
+      // console.warn('User error:', message);
     } catch (error) {
-      console.error('Error display failed:', error);
+      // console.error('Error display failed:', error);
     }
   }
 
@@ -99,7 +108,7 @@
     try {
       errorMsg.textContent = "";
     } catch (error) {
-      console.error('Error clearing failed:', error);
+      // console.error('Error clearing failed:', error);
     }
   }
 
@@ -133,7 +142,7 @@
         toggleCodeBtn.textContent = "Ver código";
       }
     } catch (error) {
-      console.error('Toggle visibility failed:', error);
+      // console.error('Toggle visibility failed:', error);
     }
   }
 
@@ -148,53 +157,144 @@
         if (pathParts.length >= 4) {
           const fileId = pathParts[3];
           if (/^[a-zA-Z0-9_-]+$/.test(fileId)) {
-            return `https://drive.google.com/file/d/${fileId}/preview`;
+            return `https://drive.google.com/uc?export=download&id=${fileId}`;
           }
         }
       } else if (url.hostname === 'ohkkrqmxtgxbmetpfwda.supabase.co') {
-        
+
         return link;
       }
       return '';
     } catch (error) {
-      console.error('Link processing failed:', error);
+      // console.error('Link processing failed:', error);
       return '';
+    }
+  }
+
+  function renderPage(pageNum) {
+    try {
+      if (!pdfDoc || !pdfCanvas) return;
+
+      // console.log('Rendering page:', pageNum);
+
+      pdfDoc.getPage(pageNum).then(function(page) {
+        const viewport = page.getViewport({ scale: scale });
+        const canvas = pdfCanvas;
+        const context = canvas.getContext('2d');
+
+        // Clear canvas first
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        // console.log('Canvas size:', canvas.width, 'x', canvas.height);
+
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+
+        page.render(renderContext).promise.then(function() {
+          // console.log('Page rendered successfully');
+          if (pageInfo) {
+            pageInfo.textContent = `Página ${pageNum} de ${pdfDoc.numPages}`;
+          }
+          if (prevPageBtn) prevPageBtn.disabled = pageNum <= 1;
+          if (nextPageBtn) nextPageBtn.disabled = pageNum >= pdfDoc.numPages;
+        }).catch(function(error) {
+          // console.error('Page render error:', error);
+          showError('Erro ao exibir página do documento');
+        });
+      }).catch(function(error) {
+        // console.error('Get page error:', error);
+        showError('Erro ao carregar página do documento');
+      });
+    } catch (error) {
+      // console.error('Page render failed:', error);
+    }
+  }
+
+  function loadPDF(url) {
+    try {
+      if (!pdfCanvas) return;
+
+      // console.log('Loading PDF from:', url);
+
+      // Configure PDF.js worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+      // Show loading message
+      if (pageInfo) pageInfo.textContent = 'Carregando documento...';
+
+      const loadingTask = pdfjsLib.getDocument({
+        url: url,
+        cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
+        cMapPacked: true,
+      });
+
+      loadingTask.promise.then(function(pdf) {
+        // console.log('PDF loaded successfully:', pdf.numPages, 'pages');
+        pdfDoc = pdf;
+        currentPage = 1;
+        if (pdfControls) pdfControls.style.display = 'flex';
+        if (prevPageBtn) prevPageBtn.style.display = pdf.numPages > 1 ? 'inline-block' : 'none';
+        if (nextPageBtn) nextPageBtn.style.display = pdf.numPages > 1 ? 'inline-block' : 'none';
+        renderPage(currentPage);
+      }).catch(function(error) {
+        // console.error('PDF loading failed:', error);
+        showError('Erro ao carregar documento. Verifique o link e tente novamente.');
+      });
+    } catch (error) {
+      // console.error('PDF load failed:', error);
+      showError('Erro ao carregar documento');
     }
   }
 
   function openModal(title, link) {
     try {
-      if (!title || !link || !modal || !pdfFrame || !modalTitle) return;
-      
+      if (!title || !link || !modal || !pdfCanvas || !modalTitle) return;
+
       const previewLink = getDrivePreviewLink(link);
       if (!previewLink) {
         showError('Link inválido ou não seguro');
         return;
       }
-      
+
       const safeTitle = escapeHtml(title.substring(0, 100));
-      
-      pdfFrame.src = previewLink;
+
       modalTitle.textContent = safeTitle;
       modal.classList.add("open");
       modal.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
+
+      // Load PDF using PDF.js
+      loadPDF(previewLink);
     } catch (error) {
-      console.error('Modal open failed:', error);
-      showError('Erro ao abrir visualização');
+      // console.error('Modal open failed:', error);
+      showError('Erro ao abrir documento');
     }
   }
 
   function closeModal() {
     try {
-      if (!modal || !pdfFrame) return;
-      
+      if (!modal || !pdfCanvas) return;
+
       modal.classList.remove("open");
       modal.setAttribute("aria-hidden", "true");
-      pdfFrame.src = "about:blank";
+
+      // Clear canvas
+      const context = pdfCanvas.getContext('2d');
+      context.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height);
+
+      // Reset variables
+      pdfDoc = null;
+      currentPage = 1;
+      scale = 1.5;
+
       document.body.style.overflow = "";
     } catch (error) {
-      console.error('Modal close failed:', error);
+      // console.error('Modal close failed:', error);
     }
   }
 
@@ -376,7 +476,7 @@
       } else if (error.message.includes('Failed to fetch')) {
         showError("Erro de conexão. Verifique sua internet.");
       } else {
-        console.error('Supabase error:', error);
+        // console.error('Supabase error:', error);
         showError("Erro interno. Tente novamente mais tarde.");
       }
     }
@@ -399,7 +499,7 @@
       
       return true;
     } catch (error) {
-      console.error('Subject data validation failed:', error);
+      // console.error('Subject data validation failed:', error);
       return false;
     }
   }
@@ -416,7 +516,7 @@
         secondScreen.classList.add('fade-in');
       }, 300);
     } catch (error) {
-      console.error('Screen transition failed:', error);
+      // console.error('Screen transition failed:', error);
     }
   }
 
@@ -442,7 +542,7 @@
         dynamicContent.style.maxWidth = '100%';
       }
     } catch (error) {
-      console.error('Grid adjustment failed:', error);
+      // console.error('Grid adjustment failed:', error);
     }
   }
 
@@ -458,8 +558,8 @@
             showError("Por favor, digite um código.");
           }
         } catch (error) {
-          console.error('Form submission failed:', error);
-          showError("Erro ao processar formulário.");
+          // console.error('Form submission failed:', error);
+          showError("Erro ao enviar código. Tente novamente.");
         }
       });
     }
@@ -470,7 +570,7 @@
           e.preventDefault();
           toggleCodeVisibility();
         } catch (error) {
-          console.error('Toggle button failed:', error);
+          // console.error('Toggle button failed:', error);
         }
       });
     }
@@ -480,7 +580,7 @@
         try {
           adjustGrid();
         } catch (error) {
-          console.error('Resize handler failed:', error);
+          // console.error('Resize handler failed:', error);
         }
       });
     }
@@ -492,7 +592,7 @@
             closeModal();
           }
         } catch (error) {
-          console.error('Modal click handler failed:', error);
+          // console.error('Modal click handler failed:', error);
         }
       });
     }
@@ -504,7 +604,7 @@
             closeModal();
           }
         } catch (error) {
-          console.error('Keydown handler failed:', error);
+          // console.error('Keydown handler failed:', error);
         }
       });
     }
@@ -517,13 +617,61 @@
             e.target.value = value.substring(0, 8);
           }
         } catch (error) {
-          console.error('Input handler failed:', error);
+          // console.error('Input handler failed:', error);
+        }
+      });
+    }
+
+    if (prevPageBtn) {
+      prevPageBtn.addEventListener('click', () => {
+        try {
+          if (currentPage > 1) {
+            currentPage--;
+            renderPage(currentPage);
+          }
+        } catch (error) {
+          console.error('Erro na página anterior:', error);
+        }
+      });
+    }
+
+    if (nextPageBtn) {
+      nextPageBtn.addEventListener('click', () => {
+        try {
+          if (pdfDoc && currentPage < pdfDoc.numPages) {
+            currentPage++;
+            renderPage(currentPage);
+          }
+        } catch (error) {
+          console.error('Erro na próxima página:', error);
+        }
+      });
+    }
+
+    if (zoomInBtn) {
+      zoomInBtn.addEventListener('click', () => {
+        try {
+          scale = Math.min(scale + 0.25, 3);
+          renderPage(currentPage);
+        } catch (error) {
+          console.error('Erro no zoom +:', error);
+        }
+      });
+    }
+
+    if (zoomOutBtn) {
+      zoomOutBtn.addEventListener('click', () => {
+        try {
+          scale = Math.max(scale - 0.25, 0.5);
+          renderPage(currentPage);
+        } catch (error) {
+          console.error('Erro no zoom -:', error);
         }
       });
     }
 
   } catch (error) {
-    console.error('Event listener setup failed:', error);
+    // console.error('Event listener setup failed:', error);
   }
 
   Object.freeze(CONFIG);
