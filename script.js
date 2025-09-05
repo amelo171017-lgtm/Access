@@ -88,7 +88,6 @@
     zoomOutBtn = getElement("zoom-out");
     modalTitle = getElement("modal-title");
   } catch (error) {
-    // console.error('DOM initialization failed:', error);
     return;
   }
 
@@ -98,9 +97,7 @@
       message = message.substring(0, 200);
       errorMsg.textContent = message;
       
-      // console.warn('User error:', message);
     } catch (error) {
-      // console.error('Error display failed:', error);
     }
   }
 
@@ -108,7 +105,6 @@
     try {
       errorMsg.textContent = "";
     } catch (error) {
-      // console.error('Error clearing failed:', error);
     }
   }
 
@@ -142,7 +138,6 @@
         toggleCodeBtn.textContent = "Ver código";
       }
     } catch (error) {
-      // console.error('Toggle visibility failed:', error);
     }
   }
 
@@ -166,7 +161,6 @@
       }
       return '';
     } catch (error) {
-      // console.error('Link processing failed:', error);
       return '';
     }
   }
@@ -175,20 +169,17 @@
     try {
       if (!pdfDoc || !pdfCanvas) return;
 
-      // console.log('Rendering page:', pageNum);
 
       pdfDoc.getPage(pageNum).then(function(page) {
         const viewport = page.getViewport({ scale: scale });
         const canvas = pdfCanvas;
         const context = canvas.getContext('2d');
 
-        // Clear canvas first
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        // console.log('Canvas size:', canvas.width, 'x', canvas.height);
 
         const renderContext = {
           canvasContext: context,
@@ -196,22 +187,18 @@
         };
 
         page.render(renderContext).promise.then(function() {
-          // console.log('Page rendered successfully');
           if (pageInfo) {
             pageInfo.textContent = `Página ${pageNum} de ${pdfDoc.numPages}`;
           }
           if (prevPageBtn) prevPageBtn.disabled = pageNum <= 1;
           if (nextPageBtn) nextPageBtn.disabled = pageNum >= pdfDoc.numPages;
         }).catch(function(error) {
-          // console.error('Page render error:', error);
           showError('Erro ao exibir página do documento');
         });
       }).catch(function(error) {
-        // console.error('Get page error:', error);
         showError('Erro ao carregar página do documento');
       });
     } catch (error) {
-      // console.error('Page render failed:', error);
     }
   }
 
@@ -219,12 +206,8 @@
     try {
       if (!pdfCanvas) return;
 
-      // console.log('Loading PDF from:', url);
-
-      // Configure PDF.js worker
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-      // Show loading message
       if (pageInfo) pageInfo.textContent = 'Carregando documento...';
 
       const loadingTask = pdfjsLib.getDocument({
@@ -234,19 +217,23 @@
       });
 
       loadingTask.promise.then(function(pdf) {
-        // console.log('PDF loaded successfully:', pdf.numPages, 'pages');
         pdfDoc = pdf;
         currentPage = 1;
         if (pdfControls) pdfControls.style.display = 'flex';
         if (prevPageBtn) prevPageBtn.style.display = pdf.numPages > 1 ? 'inline-block' : 'none';
         if (nextPageBtn) nextPageBtn.style.display = pdf.numPages > 1 ? 'inline-block' : 'none';
+
+        const isMobile = window.innerWidth <= 480;
+        if (isMobile && pdfControls) {
+          pdfControls.style.flexDirection = 'column';
+          pdfControls.style.alignItems = 'stretch';
+        }
+
         renderPage(currentPage);
       }).catch(function(error) {
-        // console.error('PDF loading failed:', error);
         showError('Erro ao carregar documento. Verifique o link e tente novamente.');
       });
     } catch (error) {
-      // console.error('PDF load failed:', error);
       showError('Erro ao carregar documento');
     }
   }
@@ -268,10 +255,8 @@
       modal.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
 
-      // Load PDF using PDF.js
       loadPDF(previewLink);
     } catch (error) {
-      // console.error('Modal open failed:', error);
       showError('Erro ao abrir documento');
     }
   }
@@ -283,18 +268,15 @@
       modal.classList.remove("open");
       modal.setAttribute("aria-hidden", "true");
 
-      // Clear canvas
       const context = pdfCanvas.getContext('2d');
       context.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height);
 
-      // Reset variables
       pdfDoc = null;
       currentPage = 1;
       scale = 1.5;
 
       document.body.style.overflow = "";
     } catch (error) {
-      // console.error('Modal close failed:', error);
     }
   }
 
@@ -476,7 +458,6 @@
       } else if (error.message.includes('Failed to fetch')) {
         showError("Erro de conexão. Verifique sua internet.");
       } else {
-        // console.error('Supabase error:', error);
         showError("Erro interno. Tente novamente mais tarde.");
       }
     }
@@ -499,7 +480,6 @@
       
       return true;
     } catch (error) {
-      // console.error('Subject data validation failed:', error);
       return false;
     }
   }
@@ -516,7 +496,6 @@
         secondScreen.classList.add('fade-in');
       }, 300);
     } catch (error) {
-      // console.error('Screen transition failed:', error);
     }
   }
 
@@ -542,7 +521,6 @@
         dynamicContent.style.maxWidth = '100%';
       }
     } catch (error) {
-      // console.error('Grid adjustment failed:', error);
     }
   }
 
@@ -558,7 +536,6 @@
             showError("Por favor, digite um código.");
           }
         } catch (error) {
-          // console.error('Form submission failed:', error);
           showError("Erro ao enviar código. Tente novamente.");
         }
       });
@@ -570,7 +547,6 @@
           e.preventDefault();
           toggleCodeVisibility();
         } catch (error) {
-          // console.error('Toggle button failed:', error);
         }
       });
     }
@@ -580,7 +556,6 @@
         try {
           adjustGrid();
         } catch (error) {
-          // console.error('Resize handler failed:', error);
         }
       });
     }
@@ -592,7 +567,6 @@
             closeModal();
           }
         } catch (error) {
-          // console.error('Modal click handler failed:', error);
         }
       });
     }
@@ -604,7 +578,6 @@
             closeModal();
           }
         } catch (error) {
-          // console.error('Keydown handler failed:', error);
         }
       });
     }
@@ -617,7 +590,6 @@
             e.target.value = value.substring(0, 8);
           }
         } catch (error) {
-          // console.error('Input handler failed:', error);
         }
       });
     }
@@ -671,7 +643,6 @@
     }
 
   } catch (error) {
-    // console.error('Event listener setup failed:', error);
   }
 
   Object.freeze(CONFIG);
