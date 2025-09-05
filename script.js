@@ -171,9 +171,9 @@
 
       pdfDoc.getPage(pageNum).then(function(page) {
         // Calcular o viewport considerando o container disponível
-        const pdfContainer = pdfCanvas.parentElement;
-        const availableWidth = pdfContainer.clientWidth - 10; // margem reduzida
-        const availableHeight = pdfContainer.clientHeight - 30; // margem maior para controles
+        const modalBody = pdfCanvas.parentElement;
+        const availableWidth = modalBody.clientWidth - 10; // margem reduzida
+        const availableHeight = modalBody.clientHeight - 10; // margem reduzida
 
         // Obter as dimensões originais da página
         const originalViewport = page.getViewport({ scale: 1 });

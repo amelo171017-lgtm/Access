@@ -56,18 +56,16 @@
           </button>
         </header>
         <div class="modal-body">
-          <div class="pdf-container">
-            <canvas id="pdf-canvas"></canvas>
-          </div>
-          <div id="pdf-controls" style="display: none;">
-            <span id="page-info">Página 1 de 1</span>
+          <canvas id="pdf-canvas"></canvas>
+          <div id="pdf-controls" style="display: none; padding: 10px; background: #0f172a; border-top: 1px solid #334155;">
+            <span id="page-info" style="color: #f8fafc; margin: 0 10px;">Página 1 de 1</span>
             <div class="control-group">
               <button id="prev-page" class="pdf-control-btn">◀</button>
               <button id="next-page" class="pdf-control-btn">▶</button>
             </div>
             <div class="control-group">
-              <button id="zoom-out" class="pdf-control-btn">🔍-</button>
-              <button id="zoom-in" class="pdf-control-btn">🔍+</button>
+              <button id="zoom-out" class="pdf-control-btn">🔍+</button>
+              <button id="zoom-in" class="pdf-control-btn">🔍-</button>
             </div>
           </div>
         </div>
