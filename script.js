@@ -2,8 +2,8 @@
   'use strict';
   
   const CONFIG = {
-    url: atob('aHR0cHM6Ly9vaGtrcnFteHRneGJtZXRwZndkYS5zdXBhYmFzZS5jbw=='),
-    key: atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW05b2EydHljVzE0ZEdkNFltMWxkSEJtZDJSaElpd2ljbTlzWlNJNkltRnViMjRpTENKcFlYUWlPakUzTlRZNU1qWXhPRElzSW1WNGNDSTZNakEzTWpVd01qRTRNbjAuaktpcmhEQ19Nb2lqUkd6aDJFSjV6TXJDQjd0UzVBN1hkZUQzWkNaQVRvRQ==')
+    url: 'https://ohkkrqmxtgxbmetpfwda.supabase.co',
+    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oa2tycW14dGd4Ym1ldHBmd2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjYxODIsImV4cCI6MjA3MjUwMjE4Mn0.jKirhDC_MoijRGzh2EJ5zMrCB7tS5A7XdeD3ZCZAToE'
   };
 
   const validateEnvironment = () => {
@@ -523,5 +523,4 @@
   }
 
   Object.freeze(CONFIG);
-  Object.freeze(rateLimiter);
 })();

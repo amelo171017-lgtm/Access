@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Permissions-Policy" content="unload=*" />
     <title>Validação de Código</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -54,7 +55,7 @@
           </button>
         </header>
         <div class="modal-body">
-          <iframe id="pdf-frame" title="Documento" allow="autoplay"></iframe>
+          <iframe id="pdf-frame" title="Documento" allow="autoplay; fullscreen; unload" referrerpolicy="no-referrer"></iframe>
         </div>
       </div>
     </div>
@@ -64,7 +65,7 @@
 
     <script>
       (function () {
-        let isProtected = true;
+        let isProtected = false;
         let shiftClicks = 0;
         let shiftClickTimer = null;
 
