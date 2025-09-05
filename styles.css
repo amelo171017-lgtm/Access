@@ -310,7 +310,7 @@ h1 {
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: 100%;
+  max-height: 80%;
   border: 0;
   background: #0f172a;
   display: block;
@@ -322,7 +322,7 @@ h1 {
   display: none;
   align-items: center;
   justify-content: space-between;
-  gap: 15px;
+  gap: 5px;
   padding: 15px 20px;
   background: rgba(15, 23, 42, 0.95);
   border-top: 1px solid #334155;
@@ -480,7 +480,6 @@ h1 {
   }
 }
 
-/* Modal Responsivo */
 @media (max-width: 768px) {
   .modal-content {
     width: 98vw;
@@ -528,8 +527,8 @@ h1 {
 
 @media (min-width: 769px) and (max-width: 1023px) {
   .modal-content {
-    width: min(90vw, 900px);
-    height: min(85vh, 700px);
+    width: min(70vw, 900px);
+    height: min(65vh, 700px);
     margin: 7.5vh auto;
   }
 
