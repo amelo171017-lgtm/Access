@@ -259,12 +259,15 @@ h1 {
   border-bottom: 1px solid #334155;
 }
 
+
 .modal-header h2 {
   margin: 0;
   color: #f1f5f9;
   font-size: 20px;
   font-weight: 600;
+  word-break: break-word;
 }
+
 
 .modal-close {
   background: transparent;
@@ -299,6 +302,27 @@ h1 {
   box-sizing: border-box;
 }
 
+.pdf-pages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  padding: 10px;
+  background: #0f172a;
+}
+
+.pdf-page-canvas {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  border: 0;
+  background: #0f172a;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+/* Canvas único para compatibilidade */
 #pdf-canvas {
   width: auto;
   height: auto;
@@ -311,47 +335,6 @@ h1 {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-#pdf-controls {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  padding: 15px 20px;
-  background: #0f172a;
-  border-top: 1px solid #334155;
-  flex-wrap: wrap;
-}
-
-.pdf-control-btn {
-  padding: 8px 12px;
-  background: rgba(59, 130, 246, 0.1);
-  color: #60a5fa;
-  border: 1px solid #60a5fa;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.pdf-control-btn:hover {
-  background: rgba(59, 130, 246, 0.2);
-}
-
-.pdf-control-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-#page-info {
-  color: #f8fafc;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.control-group {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
 
 .control-group .pdf-control-btn {
   min-width: 40px;
@@ -498,19 +481,6 @@ h1 {
     padding: 1px;
   }
 
-  #pdf-controls {
-    padding: 12px 15px;
-    gap: 10px;
-  }
-
-  .pdf-control-btn {
-    padding: 6px 10px;
-    font-size: 13px;
-  }
-
-  #page-info {
-    font-size: 13px;
-  }
 }
 
 @media (min-width: 769px) and (max-width: 1023px) {
@@ -520,14 +490,6 @@ h1 {
     margin: 7.5vh auto;
   }
 
-  #pdf-controls {
-    padding: 12px 18px;
-    gap: 12px;
-  }
-
-  .control-group .pdf-control-btn {
-    min-width: 45px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -544,41 +506,6 @@ h1 {
 
   .modal-header h2 {
     font-size: 16px;
-  }
-
-  #pdf-controls {
-    padding: 10px 12px;
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-
-  .control-group {
-    justify-content: center;
-    gap: 15px;
-  }
-
-  .control-group .pdf-control-btn {
-    min-width: 50px;
-    padding: 8px 12px;
-  }
-
-  .pdf-control-btn {
-    padding: 8px 12px;
-    font-size: 14px;
-    width: 100%;
-    max-width: none;
-  }
-
-  #page-info {
-    order: -1;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    background: rgba(59, 130, 246, 0.1);
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin-bottom: 5px;
   }
 }
 

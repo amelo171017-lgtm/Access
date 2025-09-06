@@ -65,7 +65,7 @@
     return element;
   };
 
-  let form, input, errorMsg, initialScreen, secondScreen, dynamicContent, toggleCodeBtn, modal, pdfCanvas, pdfControls, prevPageBtn, nextPageBtn, pageInfo, zoomInBtn, zoomOutBtn, modalTitle;
+  let form, input, errorMsg, initialScreen, secondScreen, dynamicContent, toggleCodeBtn, modal, pdfCanvas, modalTitle;
   let pdfDoc = null;
   let currentPage = 1;
   let scale = 1.5;
@@ -80,12 +80,6 @@
     toggleCodeBtn = getElement("toggle-code");
     modal = getElement("modal");
     pdfCanvas = getElement("pdf-canvas");
-    pdfControls = getElement("pdf-controls");
-    prevPageBtn = getElement("prev-page");
-    nextPageBtn = getElement("next-page");
-    pageInfo = getElement("page-info");
-    zoomInBtn = getElement("zoom-in");
-    zoomOutBtn = getElement("zoom-out");
     modalTitle = getElement("modal-title");
   } catch (error) {
     return;
@@ -165,61 +159,74 @@
     }
   }
 
-  function renderPage(pageNum) {
+  function renderAllPages() {
     try {
       if (!pdfDoc || !pdfCanvas) return;
 
-      pdfDoc.getPage(pageNum).then(function(page) {
-        // Calcular o viewport considerando o container disponível
-        const modalBody = pdfCanvas.parentElement;
-        const availableWidth = modalBody.clientWidth - 10; // margem reduzida
-        const availableHeight = modalBody.clientHeight - 10; // margem reduzida
+      const modalBody = pdfCanvas.parentElement;
+      const availableWidth = modalBody.clientWidth - 20; // margem para scroll
 
-        // Obter as dimensões originais da página
-        const originalViewport = page.getViewport({ scale: 1 });
+      // Limpar conteúdo anterior
+      modalBody.innerHTML = '';
 
-        // Calcular a escala ideal para caber no container
-        let finalScale = scale;
+      // Criar container para todas as páginas
+      const pagesContainer = document.createElement('div');
+      pagesContainer.className = 'pdf-pages-container';
+      modalBody.appendChild(pagesContainer);
 
-        // Primeiro, tentar usar a escala definida pelo usuário
-        const userViewport = page.getViewport({ scale: scale });
-        if (userViewport.width > availableWidth || userViewport.height > availableHeight) {
-          // Se não couber, ajustar automaticamente para caber
+      const renderPromises = [];
+
+      for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+        const pagePromise = pdfDoc.getPage(pageNum).then(function(page) {
+          // Obter as dimensões originais da página
+          const originalViewport = page.getViewport({ scale: 1 });
+
+          // Calcular a escala ideal para caber na largura disponível
           const scaleX = availableWidth / originalViewport.width;
-          const scaleY = availableHeight / originalViewport.height;
-          finalScale = Math.min(scaleX, scaleY);
-          // Garantir que não fique menor que 0.5
-          finalScale = Math.max(finalScale, 0.5);
-        }
+          const finalScale = Math.max(scaleX, 0.5); // mínimo 0.5
 
-        const viewport = page.getViewport({ scale: finalScale });
-        const canvas = pdfCanvas;
-        const context = canvas.getContext('2d');
+          // Considerar device pixel ratio para melhor nitidez
+          const devicePixelRatio = window.devicePixelRatio || 1;
+          const highResScale = finalScale * devicePixelRatio;
 
-        // Clear canvas first
-        context.clearRect(0, 0, canvas.width, canvas.height);
+          const viewport = page.getViewport({ scale: highResScale });
 
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+          // Criar canvas para esta página
+          const canvas = document.createElement('canvas');
+          canvas.className = 'pdf-page-canvas';
+          const context = canvas.getContext('2d');
 
-        const renderContext = {
-          canvasContext: context,
-          viewport: viewport
-        };
+          // Ajustar canvas para alta resolução
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          canvas.style.width = (viewport.width / devicePixelRatio) + 'px';
+          canvas.style.height = (viewport.height / devicePixelRatio) + 'px';
 
-        page.render(renderContext).promise.then(function() {
-          if (pageInfo) {
-            pageInfo.textContent = `Página ${pageNum} de ${pdfDoc.numPages}`;
-          }
-          if (prevPageBtn) prevPageBtn.disabled = pageNum <= 1;
-          if (nextPageBtn) nextPageBtn.disabled = pageNum >= pdfDoc.numPages;
-        }).catch(function(error) {
-          showError('Erro ao exibir página do documento');
+          // Configurar contexto para melhor qualidade
+          context.imageSmoothingEnabled = true;
+          context.imageSmoothingQuality = 'high';
+
+          const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+          };
+
+          // Adicionar canvas ao container
+          pagesContainer.appendChild(canvas);
+
+          return page.render(renderContext).promise;
         });
-      }).catch(function(error) {
-        showError('Erro ao carregar página do documento');
+
+        renderPromises.push(pagePromise);
+      }
+
+      // Aguardar todas as páginas serem renderizadas
+      Promise.all(renderPromises).catch(function(error) {
+        showError('Erro ao exibir páginas do documento');
       });
+
     } catch (error) {
+      showError('Erro ao renderizar páginas');
     }
   }
 
@@ -229,8 +236,6 @@
 
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-      if (pageInfo) pageInfo.textContent = 'Carregando documento...';
-
       const loadingTask = pdfjsLib.getDocument({
         url: url,
         cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
@@ -239,18 +244,7 @@
 
       loadingTask.promise.then(function(pdf) {
         pdfDoc = pdf;
-        currentPage = 1;
-        if (pdfControls) pdfControls.style.display = 'flex';
-        if (prevPageBtn) prevPageBtn.style.display = pdf.numPages > 1 ? 'inline-block' : 'none';
-        if (nextPageBtn) nextPageBtn.style.display = pdf.numPages > 1 ? 'inline-block' : 'none';
-
-        const isMobile = window.innerWidth <= 480;
-        if (isMobile && pdfControls) {
-          pdfControls.style.flexDirection = 'column';
-          pdfControls.style.alignItems = 'stretch';
-        }
-
-        renderPage(currentPage);
+        renderAllPages();
       }).catch(function(error) {
         showError('Erro ao carregar documento. Verifique o link e tente novamente.');
       });
@@ -284,19 +278,29 @@
 
   function closeModal() {
     try {
-      if (!modal || !pdfCanvas) return;
+      if (!modal) return;
 
       modal.classList.remove("open");
       modal.setAttribute("aria-hidden", "true");
 
-      const context = pdfCanvas.getContext('2d');
-      context.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height);
+      // Limpar todas as páginas renderizadas
+      const modalBody = document.querySelector('.modal-body');
+      if (modalBody) {
+        modalBody.innerHTML = '<canvas id="pdf-canvas"></canvas>';
+        // Re-obter referência ao canvas após recriar
+        pdfCanvas = getElement("pdf-canvas");
+      }
 
       pdfDoc = null;
       currentPage = 1;
       scale = 1.5;
 
       document.body.style.overflow = "";
+
+      // Move focus back to the input field for accessibility
+      if (input) {
+        input.focus();
+      }
     } catch (error) {
     }
   }
@@ -576,9 +580,9 @@
       window.addEventListener('resize', () => {
         try {
           adjustGrid();
-          // Re-renderizar página atual se o modal estiver aberto
+          // Re-renderizar todas as páginas se o modal estiver aberto
           if (pdfDoc && modal?.classList?.contains("open")) {
-            renderPage(currentPage);
+            renderAllPages();
           }
         } catch (error) {
         }
@@ -619,53 +623,6 @@
       });
     }
 
-    if (prevPageBtn) {
-      prevPageBtn.addEventListener('click', () => {
-        try {
-          if (currentPage > 1) {
-            currentPage--;
-            renderPage(currentPage);
-          }
-        } catch (error) {
-          console.error('Erro na página anterior:', error);
-        }
-      });
-    }
-
-    if (nextPageBtn) {
-      nextPageBtn.addEventListener('click', () => {
-        try {
-          if (pdfDoc && currentPage < pdfDoc.numPages) {
-            currentPage++;
-            renderPage(currentPage);
-          }
-        } catch (error) {
-          console.error('Erro na próxima página:', error);
-        }
-      });
-    }
-
-    if (zoomInBtn) {
-      zoomInBtn.addEventListener('click', () => {
-        try {
-          scale = Math.min(scale + 0.25, 3);
-          renderPage(currentPage);
-        } catch (error) {
-          console.error('Erro no zoom +:', error);
-        }
-      });
-    }
-
-    if (zoomOutBtn) {
-      zoomOutBtn.addEventListener('click', () => {
-        try {
-          scale = Math.max(scale - 0.25, 0.5);
-          renderPage(currentPage);
-        } catch (error) {
-          console.error('Erro no zoom -:', error);
-        }
-      });
-    }
 
   } catch (error) {
   }
